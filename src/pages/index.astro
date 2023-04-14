@@ -1,81 +1,142 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
+import { range } from "ramda";
+import { getTeam } from "../api/torneoPal";
+import Layout from "../layouts/Layout.astro";
+import mergeObjectsInArraysByProperty from "../utils/mergeObjectsInArraysByProperty";
+
+const teams = [
+  { name: "T12", id: "184530", categoryId: "T125" },
+  { name: "T13/val", id: "35127914", categoryId: "T135" },
+  { name: "T13/mus", id: "157309", categoryId: "T134" },
+] as const;
+
+type TeamId = (typeof teams)[number]["id"];
+
+type Stats = {
+  matches: number;
+  goals: number;
+};
+
+type WithStats = {
+  [key in TeamId]?: Stats;
+};
+
+type Player = {
+  id: string;
+  name: string;
+  birthyear: number;
+} & WithStats;
+
+type TeamDetails = {
+  id: string;
+  players: Player[];
+};
+
+const teamResponses = await Promise.all(
+  teams.map(({ id, categoryId }) => getTeam(id, categoryId))
+);
+
+const teamDetails: TeamDetails[] = teamResponses.map(({ team }) => ({
+  id: team.team_id,
+  players: team.players
+    .filter(({ matches }) => parseInt(matches, 10) > 0)
+    .sort((a, b) => b.last_name > a.last_name ? -1 : 1)
+    .sort((a, b) => b.birthyear > a.birthyear ? -1 : 1)
+    .map((player) => ({
+      id: player.player_id,
+      name: `${player.first_name} ${player.last_name}`,
+      birthyear: parseInt(player.birthyear, 10),
+      [team.team_id]: {
+        matches: parseInt(player.matches, 10),
+        goals: parseInt(player.goals, 10),
+      },
+    })),
+}));
+
+const players = mergeObjectsInArraysByProperty(
+  teamDetails.map(({ players }) => players),
+  "id"
+)
+  .map((player) => ({
+    ...player,
+    totals: teams.reduce(
+      (total, { id: teamId }) => ({
+        matches: total.matches + (player[teamId]?.matches ?? 0),
+        goals: total.goals + (player[teamId]?.goals ?? 0),
+      }),
+      { matches: 0, goals: 0 }
+    ),
+  }))
+  .sort((a, b) =>
+    a.totals.matches !== b.totals.matches
+      ? b.totals.matches - a.totals.matches
+      : b.totals.goals - a.totals.goals
+  );
 ---
 
-<Layout title="Welcome to Astro.">
-	<main>
-		<h1>Welcome to <span class="text-gradient">Astro</span></h1>
-		<p class="instructions">
-			To get started, open the directory <code>src/pages</code> in your project.<br />
-			<strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message above.
-		</p>
-		<ul role="list" class="link-card-grid">
-			<Card
-				href="https://docs.astro.build/"
-				title="Documentation"
-				body="Learn how Astro works and explore the official API docs."
-			/>
-			<Card
-				href="https://astro.build/integrations/"
-				title="Integrations"
-				body="Supercharge your project with new frameworks and libraries."
-			/>
-			<Card
-				href="https://astro.build/themes/"
-				title="Themes"
-				body="Explore a galaxy of community-built starter themes."
-			/>
-			<Card
-				href="https://astro.build/chat/"
-				title="Community"
-				body="Come say hi to our amazing Discord community. ❤️"
-			/>
-		</ul>
-	</main>
+<Layout title="T10-11 tilastot">
+  <main>
+    <table>
+      <thead>
+        <tr>
+          <td></td>
+          <th colspan="2">Yhteensä</th>
+          {
+            teams.map(({ name }) => (
+              <>
+                <th colspan="2">{name}</th>
+              </>
+            ))
+          }
+        </tr>
+        <tr>
+          <td/>
+          {range(0, 4).map(() => <td>ottelut</td><td>maalit</td>)}
+        </tr>
+      </thead>
+      <tbody>
+        {
+          players.map((player) => (
+            <tr>
+              <td>{player.name} ({player.birthyear})</td>
+              <td>{player.totals.matches}</td>
+              <td>{player.totals.goals}</td>
+              {teams.map(({ id: teamId }) => {
+                const stats = player?.[teamId];
+                if (!stats) {
+                  return <td /><td />;
+                }
+
+                return (
+                    <td>{stats.matches}</td>
+                    <td>{stats.goals > 0 ? stats.goals : ""}</td>
+                );
+              })}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+    <br />
+    Yhteensä: {players.length} pelaajaa
+  </main>
 </Layout>
 
 <style>
-	main {
-		margin: auto;
-		padding: 1.5rem;
-		max-width: 60ch;
-	}
-	h1 {
-		font-size: 3rem;
-		font-weight: 800;
-		margin: 0;
-	}
-	.text-gradient {
-		background-image: var(--accent-gradient);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-size: 400%;
-		background-position: 0%;
-	}
-	.instructions {
-		line-height: 1.6;
-		margin: 1rem 0;
-		border: 1px solid rgba(var(--accent), 25%);
-		background-color: white;
-		padding: 1rem;
-		border-radius: 0.4rem;
-	}
-	.instructions code {
-		font-size: 0.875em;
-		font-weight: bold;
-		background: rgba(var(--accent), 12%);
-		color: rgb(var(--accent));
-		border-radius: 4px;
-		padding: 0.3em 0.45em;
-	}
-	.instructions strong {
-		color: rgb(var(--accent));
-	}
-	.link-card-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
-		gap: 1rem;
-		padding: 0;
-	}
+  th,
+  td {
+    padding: 0.2rem 1rem;
+  }
+  td:not(:first-child) {
+    text-align: center;
+  }
+
+  td:nth-child(2n+4) {
+    border-left: 1px solid lightgray;
+  }
+
+  tbody td:empty::before {
+    content: "-";
+    color: darkgray;
+  }
 </style>
