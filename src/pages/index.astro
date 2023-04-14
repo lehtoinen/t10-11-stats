@@ -44,7 +44,7 @@ const teamDetails: TeamDetails[] = teamResponses.map(({ team }) => ({
     .sort((a, b) => b.birthyear > a.birthyear ? -1 : 1)
     .map((player) => ({
       id: player.player_id,
-      name: `${player.first_name} ${player.last_name}`,
+      name: `${player.first_name} ${player.last_name.substring(0, 1)}.`,
       birthyear: parseInt(player.birthyear, 10),
       [team.team_id]: {
         matches: parseInt(player.matches, 10),
@@ -91,16 +91,16 @@ const players = mergeObjectsInArraysByProperty(
         </tr>
         <tr>
           <td/>
-          {range(0, 4).map(() => <td>ottelut</td><td>maalit</td>)}
+          {range(0, 4).map(() => <th>O</th><th>M</th>)}
         </tr>
       </thead>
       <tbody>
         {
           players.map((player) => (
             <tr>
-              <td>{player.name} ({player.birthyear})</td>
+              <td>{player.name} <div class="birthyear">{player.birthyear}</div></td>
               <td>{player.totals.matches}</td>
-              <td>{player.totals.goals}</td>
+              <td>{player.totals.goals > 0 ? player.totals.goals : ''}</td>
               {teams.map(({ id: teamId }) => {
                 const stats = player?.[teamId];
                 if (!stats) {
@@ -123,9 +123,22 @@ const players = mergeObjectsInArraysByProperty(
 </Layout>
 
 <style>
+  table {
+    width: 100%;
+    max-width: 40rem;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  tbody tr:nth-child(2n+1) {
+    background-color: #E9E9E9;
+  }
   th,
   td {
-    padding: 0.2rem 1rem;
+    padding: 0.4rem;
+    min-width: 2rem;
+    border: 0;
+    box-sizing: border-box;
   }
   td:not(:first-child) {
     text-align: center;
@@ -138,5 +151,10 @@ const players = mergeObjectsInArraysByProperty(
   tbody td:empty::before {
     content: "-";
     color: darkgray;
+  }
+
+  .birthyear {
+    font-size: smaller;
+    color: #777;
   }
 </style>
