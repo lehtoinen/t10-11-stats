@@ -128,6 +128,7 @@ const players = mergeObjectsInArraysByProperty(
     max-width: 40rem;
     font-size: 0.9rem;
     color: #333;
+    border-spacing: 0;
   }
 
   tbody tr:nth-child(2n+1) {
@@ -144,8 +145,11 @@ const players = mergeObjectsInArraysByProperty(
     text-align: center;
   }
 
+
+  tr:nth-child(1) th:nth-child(1n+3),
+  tr:nth-child(2) th:nth-child(2n+4),
   td:nth-child(2n+4) {
-    border-left: 1px solid lightgray;
+    border-left: 1px solid darkgray;
   }
 
   tbody td:empty::before {
