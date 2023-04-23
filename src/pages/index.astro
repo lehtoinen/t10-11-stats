@@ -13,8 +13,8 @@ const teamDetails: TeamDetails[] = teamResponses.map(({ team }) => ({
   id: team.team_id,
   players: team.players
     .filter(({ matches }) => parseInt(matches, 10) > 0)
-    .sort((a, b) => b.first_name > a.first_name ? -1 : 1)
-    .sort((a, b) => b.birthyear > a.birthyear ? -1 : 1)
+    .sort((a, b) => (b.first_name > a.first_name ? -1 : 1))
+    .sort((a, b) => (b.birthyear > a.birthyear ? -1 : 1))
     .map((player) => ({
       id: player.player_id,
       name: `${player.first_name} ${player.last_name.substring(0, 1)}.`,
