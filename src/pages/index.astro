@@ -1,5 +1,4 @@
 ---
-import { range } from "ramda";
 import { getTeam } from "../api/torneoPal";
 import Layout from "../layouts/Layout.astro";
 import { TeamDetails, teams } from "../types";
@@ -27,112 +26,13 @@ const teamDetails: TeamDetails[] = teamResponses.map(({ team }) => ({
     })),
 }));
 
-const players = mergeObjectsInArraysByProperty(
-  teamDetails.map(({ players }) => players),
-  "id"
-)
-  .map((player) => ({
-    ...player,
-    totals: teams.reduce(
-      (total, { id: teamId }) => ({
-        matches: total.matches + (player[teamId]?.matches ?? 0),
-        goals: total.goals + (player[teamId]?.goals ?? 0),
-      }),
-      { matches: 0, goals: 0 }
-    ),
-  }))
-  .sort((a, b) =>
-    a.totals.matches !== b.totals.matches
-      ? b.totals.matches - a.totals.matches
-      : b.totals.goals - a.totals.goals
-  );
+const players = parsePlayersFromTeams(teamDetails);
 ---
 
 <Layout title="T10-11 tilastot">
   <main>
-    <table>
-      <thead>
-        <tr>
-          <td></td>
-          <th colspan="2">Yhteensä</th>
-          {
-            teams.map(({ name }) => (
-              <>
-                <th colspan="2">{name}</th>
-              </>
-            ))
-          }
-        </tr>
-        <tr>
-          <td/>
-          {range(0, 4).map(() => <th>O</th><th>M</th>)}
-        </tr>
-      </thead>
-      <tbody>
-        {
-          players.map((player) => (
-            <tr>
-              <td>{player.name} <div class="birthyear">{player.birthyear}</div></td>
-              <td>{player.totals.matches}</td>
-              <td>{player.totals.goals > 0 ? player.totals.goals : ''}</td>
-              {teams.map(({ id: teamId }) => {
-                const stats = player?.[teamId];
-                if (!stats) {
-                  return <td /><td />;
-                }
-
-                return (
-                    <td>{stats.matches}</td>
-                    <td>{stats.goals > 0 ? stats.goals : ""}</td>
-                );
-              })}
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
+    <PlayersStats players={players} />
     <br />
     Yhteensä: {players.length} pelaajaa
   </main>
 </Layout>
-
-<style>
-  table {
-    width: 100%;
-    max-width: 40rem;
-    font-size: 0.9rem;
-    color: #333;
-    border-spacing: 0;
-  }
-
-  tbody tr:nth-child(2n+1) {
-    background-color: #E9E9E9;
-  }
-  th,
-  td {
-    padding: 0.4rem;
-    min-width: 2rem;
-    border: 0;
-    box-sizing: border-box;
-  }
-  td:not(:first-child) {
-    text-align: center;
-  }
-
-
-  tr:nth-child(1) th:nth-child(1n+3),
-  tr:nth-child(2) th:nth-child(2n+4),
-  td:nth-child(2n+4) {
-    border-left: 1px solid darkgray;
-  }
-
-  tbody td:empty::before {
-    content: "-";
-    color: darkgray;
-  }
-
-  .birthyear {
-    font-size: smaller;
-    color: #777;
-  }
-</style>
