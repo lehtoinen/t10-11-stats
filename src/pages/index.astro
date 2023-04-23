@@ -2,35 +2,9 @@
 import { range } from "ramda";
 import { getTeam } from "../api/torneoPal";
 import Layout from "../layouts/Layout.astro";
-import mergeObjectsInArraysByProperty from "../utils/mergeObjectsInArraysByProperty";
-
-const teams = [
-  { name: "T12", id: "184530", categoryId: "T125" },
-  { name: "T13/v", id: "35127914", categoryId: "T135" },
-  { name: "T13/m", id: "157309", categoryId: "T134" },
-] as const;
-
-type TeamId = (typeof teams)[number]["id"];
-
-type Stats = {
-  matches: number;
-  goals: number;
-};
-
-type WithStats = {
-  [key in TeamId]?: Stats;
-};
-
-type Player = {
-  id: string;
-  name: string;
-  birthyear: number;
-} & WithStats;
-
-type TeamDetails = {
-  id: string;
-  players: Player[];
-};
+import { TeamDetails, teams } from "../types";
+import PlayersStats from "../components/PlayersStats.astro";
+import { parsePlayersFromTeams } from "../utils/parsePlayersFromTeams";
 
 const teamResponses = await Promise.all(
   teams.map(({ id, categoryId }) => getTeam(id, categoryId))
