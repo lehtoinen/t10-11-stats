@@ -31,7 +31,7 @@ const {players} = Astro.props;
 		{
 			players.map((player) => (
 				<tr>
-					<td>{player.name} <div class="birthyear">{player.birthyear}</div></td>
+					<td>{player.name}<div class="birthyear">{player.birthyear}</div></td>
 					<td>{player.matches}</td>
 					<td>{player.goals > 0 ? player.goals : ''}</td>
 					{teams.map(({ id: teamId }) => {

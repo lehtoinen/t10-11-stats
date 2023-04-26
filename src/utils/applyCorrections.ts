@@ -15,6 +15,18 @@ const CORRECTIONS: Record<string, { [key in TeamName]?: Partial<Stats> }> = {
     // Mirjami N.
     "T13/v": { matches: -1 },
   },
+  "985681": {
+    // Anna M.
+    T12: { matches: -1 },
+  },
+  "1058564": {
+    // Leona G.
+    T12: { matches: -1 },
+  },
+  "1066380": {
+    // Aisha B.
+    "T13/v": { goals: 1 },
+  },
 };
 
 export const applyCorrections = (player: Player): Player => {
