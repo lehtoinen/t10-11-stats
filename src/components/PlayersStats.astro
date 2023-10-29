@@ -24,7 +24,7 @@ const {players} = Astro.props;
 		</tr>
 		<tr>
 			<td/>
-			{range(0, 4).map(() => <th>O</th><th>M</th>)}
+			{range(0, 6).map(() => <th>O</th><th>M</th>)}
 		</tr>
 	</thead>
 	<tbody>
@@ -34,8 +34,8 @@ const {players} = Astro.props;
 					<td>{player.name}<div class="birthyear">{player.birthyear}</div></td>
 					<td>{player.matches}</td>
 					<td>{player.goals > 0 ? player.goals : ''}</td>
-					{teams.map(({ id: teamId }) => {
-						const stats = player?.[teamId];
+					{teams.map(({ statsId }) => {
+						const stats = player?.[`${statsId}`];
 						if (!stats) {
 							return <td /><td />;
 						}

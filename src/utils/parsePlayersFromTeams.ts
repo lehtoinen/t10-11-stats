@@ -7,12 +7,15 @@ export const parsePlayersFromTeams = (teamDetails: TeamDetails[]) => {
     teamDetails.map(({ players }) => players),
     "id"
   )
-    .map((player) => applyCorrections(player))
+    .map((player) => console.log(player) || applyCorrections(player))
     .map((player) => {
       const totals = teams.reduce(
-        (total, { id: teamId }) => ({
-          matches: total.matches + (player[teamId]?.matches ?? 0),
-          goals: total.goals + (player[teamId]?.goals ?? 0),
+        (total, { id: teamId, categoryId: teamCategoryId }) => ({
+          matches:
+            total.matches +
+            (player[`${teamId}-${teamCategoryId}`]?.matches ?? 0),
+          goals:
+            total.goals + (player[`${teamId}-${teamCategoryId}`]?.goals ?? 0),
         }),
         { matches: 0, goals: 0 }
       );

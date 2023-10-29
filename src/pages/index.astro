@@ -19,7 +19,7 @@ const teamDetails: TeamDetails[] = teamResponses.map(({ team }) => ({
       id: player.player_id,
       name: `${player.first_name} ${player.last_name.substring(0, 1)}.`,
       birthyear: parseInt(player.birthyear, 10),
-      [team.team_id]: {
+      [`${team.team_id}-${team.categories[0]?.category_id}`]: {
         matches: parseInt(player.matches, 10),
         goals: parseInt(player.goals, 10),
       },
